@@ -45,6 +45,11 @@ function createWorkspace(blocklyDiv, options) {
   workspace.registerButtonCallback("createClick", function() {
     //console.log(codelabGenerator.workspaceToCode());
     //window.alert('Waiting for you blog files to be configured...');
+
+    if (!isWorkspaceValid(workspace)) {
+      alert('Workspace contains errors. Please fix them and try again.');
+      return;
+    }
     
     fetch('https://smartblogbuilder.azurewebsites.net/api/Create', {
       method: 'POST',
@@ -71,6 +76,16 @@ function createWorkspace(blocklyDiv, options) {
   });
 
   return workspace;
+}
+
+function isWorkspaceValid(workspace) {
+  workspace.getAllBlocks().forEach(function(block) {
+  var isEnabled = block.isEnabled();
+  
+  if (!isEnabled) {
+    return false;
+  }
+});
 }
 
 function configurePlayground(playground) {

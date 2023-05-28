@@ -24,11 +24,11 @@ Blockly.defineBlocksWithJsonArray([
   "inputsInline": false,
   "colour": 0,
   "tooltip": "Container to select features and styles for the blog",
-  "extensions": ["validateCount"]
+  "extensions": ["validateBlocks"]
 },
 {
   "type": "textgen",
-  "message0": "Text generation %1 using GPT-3.5",
+  "message0": "Text generation %1 using GPT-3",
   "args0": [
     {
       "type": "input_dummy"
@@ -39,8 +39,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 30,
   "tooltip": "Ability to generate text for a new post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "imagegen",
@@ -55,8 +54,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 45,
   "tooltip": "Ability to generate an image for a new post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "autocomments",
@@ -71,12 +69,11 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 60,
   "tooltip": "Ability to automatically answer to posts comments",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "autopost",
-  "message0": "Auto posting %1 using GPT-3.5 %2 Posting everyday on %3",
+  "message0": "Auto posting %1 using GPT-3 %2 Posting everyday on %3",
   "args0": [
     {
       "type": "input_dummy"
@@ -95,7 +92,7 @@ Blockly.defineBlocksWithJsonArray([
   "colour": 75,
   "tooltip": "Ability to automatically generate posts on a schedule",
   "helpUrl": "",
-  "extensions": ["validateCount", "hoursDropDown", "minutesDropDown"]
+  "extensions": ["hoursDropDown", "minutesDropDown"]
 },
 {
   "type": "moderation",
@@ -105,8 +102,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 95,
   "tooltip": "Ability to moderate good conduct for new comments",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "summarazation",
@@ -116,8 +112,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 115,
   "tooltip": "Ability to summarize content of a post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "translate",
@@ -127,8 +122,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 135,
   "tooltip": "Ability to translate content of a post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "rephrase",
@@ -138,19 +132,17 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 155,
   "tooltip": "Ability to rephrase content of a post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "edit",
-  "message0": "Post content fixing mistakes",
+  "message0": "Post content auto correct",
   "inputsInline": false,
   "previousStatement": null,
   "nextStatement": null,
   "colour": 175,
   "tooltip": "Ability to fix content of a post",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "colourtheme",
@@ -161,7 +153,7 @@ Blockly.defineBlocksWithJsonArray([
     },
     {
       "type": "field_colour",
-      "name": "NAME",
+      "name": "colour1",
       "colour": "#666666"
     },
     {
@@ -169,7 +161,7 @@ Blockly.defineBlocksWithJsonArray([
     },
     {
       "type": "field_colour",
-      "name": "NAME",
+      "name": "colour2",
       "colour": "#c0c0c0"
     }
   ],
@@ -178,8 +170,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 240,
   "tooltip": "Select colours from which the blog's colour theme will be determined",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 },
 {
   "type": "blogname",
@@ -199,8 +190,7 @@ Blockly.defineBlocksWithJsonArray([
   "nextStatement": null,
   "colour": 230,
   "tooltip": "Select a name for the blog",
-  "helpUrl": "",
-  "extensions": ["validateCount"]
+  "helpUrl": ""
 }
 ]);
 
@@ -228,63 +218,76 @@ var codelabToolbox = `
 `;
 
 Blockly.Extensions.register(
-  'validateCount',
+  'validateBlocks',
   function() {
     this.onchange = function(){
-      if (this.workspace.getBlocksByType(this.type).length > 1) {
-        this.setWarningText("This block can only be used once.");
-        this.setEnabled(false);
-      } else if (this.getSurroundParent()) {
-        this.setWarningText(null);
-        this.setEnabled(true);
-      }
-    }
-  });
+      var features_block = this.getInputTargetBlock('features');
+      if(features_block)
+      do{ 
+        var isFeature = checkFeatures(features_block);
+        var isValidCount = validateCount(features_block);
 
-Blockly.Extensions.register(
-  'validateType',
-  function() {
-    this.onchange = function(){
-      var child_count = this.getChildren().length;
-
-      if(child_count > 0) {
-        var child_block = this.getChildren()[0];
-        checkFeatures(child_block);
-    
-        while(child_block.getNextBlock()) {
-          child_block = child_block.getNextBlock();
-          checkFeatures(child_block);
-        };
-      }
+        if (!isFeature){
+          features_block.setWarningText("This is not a block for features.");
+          features_block.setEnabled(false);
+        }
+        else if (!isValidCount) {
+          features_block.setWarningText("This block can only be used once.");
+          features_block.setEnabled(false);
+        }
+        else {
+          features_block.setWarningText(null);
+          features_block.setEnabled(true);
+        }
+        } while (features_block = features_block.getNextBlock());
       
-      if(child_count > 1) {
-        child_block = this.getChildren()[1];
-        checkStyle(child_block);
-    
-        while(child_block.getNextBlock()) {
-          child_block = child_block.getNextBlock();
-          checkStyle(child_block);
-        };
-      }
+      var style_block =  this.getInputTargetBlock('styles');
+      if(style_block)
+      do{ 
+        var isStyle = checkStyle(style_block);
+        var isValidCount = validateCount(style_block);
+
+        if (!isStyle){
+          style_block.setWarningText("This is not a block for style.");
+          style_block.setEnabled(false);
+        }
+        else if (!isValidCount) {
+          style_block.setWarningText("This block can only be used once.");
+          style_block.setEnabled(false);
+        }
+        else {
+          style_block.setWarningText(null);
+          style_block.setEnabled(true);
+        }
+        } while (style_block = style_block.getNextBlock());
     }
   });
+
+const validateCount = function(block) {
+  if (block.workspace.getBlocksByType(block.type).length > 1) {
+    return false;
+  } else if (block.getSurroundParent()) {
+    return true;
+  }
+};
 
 const checkFeatures = function(block) {
-  const validValues = ["textgen", "imagegen", "autocomments", "moderation", "autopost", "summarazation", "translate"];
+  const validValues = ["textgen", "imagegen", "autocomments", "moderation", "autopost", "summarazation", "translate", "rephrase", "edit"];
 
   if (!validValues.includes(block.type)) {
-    block.setEnabled(false);
+    return false;
   }
-}
+  return true;
+};
 
 const checkStyle = function(block) {
   const validValues = ["blogname", "colourtheme"];
 
   if (!validValues.includes(block.type)) {
-    console.log(block.type);
-    block.setEnabled(false);
+    return false;
   }
-}
+  return true;
+};
 
 const codelabGenerator = new Blockly.Generator('DOTNET');
 
@@ -364,8 +367,10 @@ codelabGenerator['blogname'] = function(block) {
   return `"BlogName": "`+ blogName +`",\n`
 };
 
-codelabGenerator['colourtheme'] = function() {
-  return `"ColourTheme": true,\n`
+codelabGenerator['colourtheme'] = function(block) {
+  var colour1 = block.getFieldValue('colour1');
+  var colour2 = block.getFieldValue('colour2');
+  return `"ColourMain": "`+ colour1 +`",\n"ColourSec": "`+ colour2 +`",\n`
 };
 
 Blockly.Extensions.register('hoursDropDown',
