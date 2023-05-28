@@ -81,11 +81,11 @@ function createWorkspace(blocklyDiv, options) {
 function isWorkspaceValid(workspace) {
   workspace.getAllBlocks().forEach(function(block) {
   var isEnabled = block.isEnabled();
-  
   if (!isEnabled) {
     return false;
   }
 });
+return true;
 }
 
 function configurePlayground(playground) {
